@@ -44,7 +44,7 @@ std::tuple<std::string, std::string, std::string, std::string> readArgsFromFile(
     if (file.is_open()) {
         std::string arg{};
         while (std::getline(file, arg)) {
-            args.emplace_back(arg);
+            args.emplace_back(arg.substr(arg.find('=') + 1));
         }
 
         file.close();
@@ -129,6 +129,9 @@ std::string executeInstructionOnChannel(ssh::Channel& channel, const std::string
     if (channel.isOpen())
     {
         channel.requestExec(instruction.c_str());
+
+        // sleep is needed for the consistency of channel calls
+        sleep(1);
         const auto size = channel.poll();
         char* buffer = new char[size];
         if (!channel.isEof())

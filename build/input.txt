@@ -1,4 +1,4 @@
-dragosioanfechete
-
-localhost
-cd ~/Desktop/cpp-learning && ls
+name=dragosioanfechete
+password=
+host=localhost
+instruction=cd ~/Desktop/cpp-learning && ls
