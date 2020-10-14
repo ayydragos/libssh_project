@@ -6,6 +6,31 @@
 #include <string>
 #include <vector>
 
+std::tuple<std::string, std::string, std::string, std::string> readArgsFromFile(std::ifstream& file) {
+    std::vector<std::string> args{};
+
+    if (file.is_open()) {
+        std::string arg{};
+        while (std::getline(file, arg)) {
+            args.emplace_back(arg.substr(arg.find('=') + 1));
+        }
+
+        file.close();
+        if (args.size() == 4)
+        {
+            return std::make_tuple(args[0], args[1], args[2], args[3]);
+        }
+        else
+        {
+            throw std::runtime_error("Could not read all 4 args from the file");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("File cannot be opened");
+    }
+}
+
 std::tuple<ssh_key, ssh_key> generateValidKeys()
 {
     ssh_key privKey{};
@@ -38,31 +63,6 @@ void exportPublicKeyToFile(const ssh_key& pubKey, std::ofstream& outFile)
     std::free(base64);
 }
 
-std::tuple<std::string, std::string, std::string, std::string> readArgsFromFile(std::ifstream& file) {
-    std::vector<std::string> args{};
-
-    if (file.is_open()) {
-        std::string arg{};
-        while (std::getline(file, arg)) {
-            args.emplace_back(arg.substr(arg.find('=') + 1));
-        }
-
-        file.close();
-        if (args.size() == 4)
-        {
-            return std::make_tuple(args[0], args[1], args[2], args[3]);
-        }
-        else
-        {
-            throw std::runtime_error("Could not read all 4 args from the file");
-        }
-}
-    else
-    {
-        throw std::runtime_error("File cannot be opened");
-    }
-}
-
 // this function is called if password is provided in "input.txt"
 void setUpSessionWithPassword(ssh::Session& session,
                   const std::string& username,
@@ -84,7 +84,7 @@ void setUpSessionWithPassword(ssh::Session& session,
     }
 }
 
-// this function is called if the second row of "input.txt" (password field) is left empty
+// this function is called if the "password" field of "input.txt" is empty
 void setUpSessionWithPublicKey(ssh::Session& session,
                                const std::string& username,
                                const std::string& host)
@@ -174,8 +174,10 @@ int main(int argc, char** argv)
         ssh::Channel channel{session};
         channel.openSession();
 
-        std::cout << "For instruction `" << instruction << "` result is:\n"
-                                                        << executeInstructionOnChannel(channel, instruction);
+        std::cout << "For instruction `"
+                  << instruction
+                  << "` result is:\n"
+                  << executeInstructionOnChannel(channel, instruction);
 
         channel.close();
     }
